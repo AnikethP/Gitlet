@@ -33,7 +33,7 @@ public class Dog implements Serializable{ // FIXME
      */
     public static Dog fromFile(String name) {
         // FIXME
-        File inFile = new File(DOG_FOLDER + "\\" + name + ".txt");
+        File inFile = new File(DOG_FOLDER + "/" + name + ".txt");
 
         Dog dog;
         try {
@@ -62,8 +62,7 @@ public class Dog implements Serializable{ // FIXME
      */
     public void saveDog() {
         // FIXME
-        System.out.println(DOG_FOLDER + "\\" + _name + ".txt");
-        File outFile = new File(DOG_FOLDER + "\\" + _name + ".txt");
+        File outFile = new File(DOG_FOLDER + "/" + _name + ".txt");
         try {
             outFile.createNewFile();
 
