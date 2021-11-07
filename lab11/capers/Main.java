@@ -1,6 +1,7 @@
 package capers;
 
 import java.io.File;
+import java.io.IOException;
 
 /** Canine Capers: A Gitlet Prelude.
  * @author Sean Dooher
@@ -10,7 +11,9 @@ public class Main {
     static final File CWD = new File(".");
 
     /** Main metadata folder. */
-    static final File CAPERS_FOLDER = null; // FIXME
+    static final File CAPERS_FOLDER = new File(".capers");// FIXME
+    static File DOGS_FOLDER = null;
+    static File STORY = null;
 
     /**
      * Runs one of three commands:
@@ -40,7 +43,7 @@ public class Main {
      *
      * @param args arguments from the command line
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException{
         if (args.length == 0) {
             exitWithError("Must have at least one argument");
         }
@@ -48,6 +51,12 @@ public class Main {
         switch (args[0]) {
         case "story":
             writeStory(args);
+            break;
+        case "dog":
+            makeDog(args);
+            break;
+        case "birthday":
+            celebrateBirthday(args);
             break;
         // FIXME
         default:
@@ -66,8 +75,15 @@ public class Main {
      *    - story -- file containing the current story
      *
      */
-    public static void setupPersistence() {
+    public static void setupPersistence() throws IOException {
         // FIXME
+        CAPERS_FOLDER.mkdir();
+        DOGS_FOLDER = Dog.DOG_FOLDER;
+        STORY = new File(".capers/story.txt");
+
+        DOGS_FOLDER.mkdir();
+        STORY.createNewFile();
+
     }
 
     /**
@@ -77,6 +93,7 @@ public class Main {
      */
     public static void writeStory(String[] args) {
         validateNumArgs("story", args, 2);
+        Utils.writeContents(STORY, args[1] + "\n");
         // FIXME
     }
 
@@ -88,6 +105,9 @@ public class Main {
      */
     public static void makeDog(String[] args) {
         validateNumArgs("dog", args, 4);
+        Dog doggy = new Dog(args[1], args[2], Integer.parseInt(args[3]));
+        doggy.saveDog();
+        System.out.println(doggy);
         // FIXME
     }
 
@@ -99,6 +119,8 @@ public class Main {
      */
     public static void celebrateBirthday(String[] args) {
         validateNumArgs("birthday", args, 2);
+        Dog doggy = Dog.fromFile(args[1]);
+        doggy.haveBirthday();
         // FIXME
     }
 

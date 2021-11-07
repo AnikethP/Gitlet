@@ -1,15 +1,16 @@
 package capers;
 
-import java.io.File;
-import java.io.Serializable;
+import com.google.common.io.FileBackedOutputStream;
+
+import java.io.*;
 
 /** Represents a dog that can be serialized.
  * @author Sean Dooher
 */
-public class Dog { // FIXME
+public class Dog implements Serializable{ // FIXME
 
     /** Folder that dogs live in. */
-    static final File DOG_FOLDER = null; // FIXME
+    static final File DOG_FOLDER = new File(".capers/dogs"); // FIXME
 
     /**
      * Creates a dog object with the specified parameters.
@@ -32,7 +33,17 @@ public class Dog { // FIXME
      */
     public static Dog fromFile(String name) {
         // FIXME
-        return null;
+        File inFile = new File(DOG_FOLDER + "/" + name);
+        Dog dog;
+        try {
+            ObjectInputStream inp =
+                    new ObjectInputStream(new FileInputStream(inFile));
+            dog = (Dog) inp.readObject();
+            inp.close();
+        } catch (IOException | ClassNotFoundException excp) {
+            dog = null;
+        }
+        return dog;
     }
 
     /**
@@ -49,6 +60,15 @@ public class Dog { // FIXME
      */
     public void saveDog() {
         // FIXME
+        File outFile = new File(this._name);
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(outFile));
+            out.writeObject(this);
+            out.close();
+        }
+        catch (IOException excp){
+            return;
+        }
     }
 
     @Override
