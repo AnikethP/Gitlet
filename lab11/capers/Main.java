@@ -93,6 +93,7 @@ public class Main {
     public static void writeStory(String[] args) {
         validateNumArgs("story", args, 2);
         Utils.writeContents(STORY, args[1] + "\n");
+        System.out.println(args[1]);
         // FIXME
     }
 
