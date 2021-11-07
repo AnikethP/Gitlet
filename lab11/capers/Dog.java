@@ -33,9 +33,11 @@ public class Dog implements Serializable{ // FIXME
      */
     public static Dog fromFile(String name) {
         // FIXME
-        File inFile = new File(DOG_FOLDER + "/" + name);
+        File inFile = new File(DOG_FOLDER + "\\" + name + ".txt");
+
         Dog dog;
         try {
+
             ObjectInputStream inp =
                     new ObjectInputStream(new FileInputStream(inFile));
             dog = (Dog) inp.readObject();
@@ -60,8 +62,11 @@ public class Dog implements Serializable{ // FIXME
      */
     public void saveDog() {
         // FIXME
-        File outFile = new File(this._name);
+        System.out.println(DOG_FOLDER + "\\" + _name + ".txt");
+        File outFile = new File(DOG_FOLDER + "\\" + _name + ".txt");
         try {
+            outFile.createNewFile();
+
             ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(outFile));
             out.writeObject(this);
             out.close();

@@ -94,7 +94,7 @@ public class Main {
         validateNumArgs("story", args, 2);
 
         Utils.writeContents(STORY, Utils.readContentsAsString(STORY) + args[1] + "\n");
-        System.out.println(args[1]);
+        System.out.println(Utils.readContentsAsString(STORY));
         // FIXME
     }
 
