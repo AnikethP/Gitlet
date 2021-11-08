@@ -7,9 +7,9 @@ import java.util.Arrays;
  */
 public class Quicksort {
     /** When true, prints out information as the algorithm runs. */
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     /** When true, performs JUnit testing after each partition. */
-    private static final boolean SELF_TEST = true;
+    private static final boolean SELF_TEST = false;
 
     /** Puts A into sorted order using QuickSort. */
     public static void quicksort(int[] a) {
