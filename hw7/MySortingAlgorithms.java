@@ -1,4 +1,7 @@
+import net.sf.saxon.lib.SaxonOutputKeys;
+
 import java.util.Arrays;
+import java.util.LinkedList;
 
 /**
  * Note that every sorting algorithm takes in an argument k. The sorting 
@@ -42,7 +45,14 @@ public class MySortingAlgorithms {
     public static class InsertionSort implements SortingAlgorithm {
         @Override
         public void sort(int[] array, int k) {
-            // FIXME
+            for(int j = 1; j <k; j++){
+
+                for (int i = j-1; i >=0; i--) {
+                    if(array[i+1] < array[i]) {
+                        swap(array, i+1, i);
+                    }
+                }
+            }
         }
 
         @Override
@@ -60,7 +70,17 @@ public class MySortingAlgorithms {
     public static class SelectionSort implements SortingAlgorithm {
         @Override
         public void sort(int[] array, int k) {
-            // FIXME
+
+            for(int i = 0; i < k; i++){
+                int currMinIndex = i;
+                for(int j = i; j < k; j++){
+                    if(array[j] < array[currMinIndex]){
+                        currMinIndex = j;
+                    }
+
+                }
+                swap(array, i, currMinIndex);
+            }
         }
 
         @Override
@@ -77,10 +97,48 @@ public class MySortingAlgorithms {
     public static class MergeSort implements SortingAlgorithm {
         @Override
         public void sort(int[] array, int k) {
-            // FIXME
+            if(k <= 1){
+                return;
+            }
+
+            int[] first = Arrays.copyOfRange(array, 0, k/2);
+            int[] second = Arrays.copyOfRange(array, k/2, k);
+            sort(first, first.length);
+            sort(second, second.length);
+            merge(first, second, array);
         }
 
-        // may want to add additional methods
+        public void merge(int[] array, int[] array2, int[] arr){
+            int k = 0;
+            int j = 0;
+            int i = 0;
+            while(k<array.length && j<array2.length){
+
+                if(array[k]<array2[j]){
+                    arr[i] = array[k];
+                    i+=1;
+                    k+=1;
+                }
+                else{
+                    arr[i] = array2[j];
+                    i+=1;
+                    j+=1;
+                }
+            }
+            //Add rest of elements
+            while(k<array.length){
+                arr[i] = array[k];
+                i++;
+                k++;
+            }
+            while(j<array2.length){
+                arr[i] = array2[j];
+                i++;
+                j++;
+            }
+
+
+        }
 
         @Override
         public String toString() {
@@ -149,6 +207,47 @@ public class MySortingAlgorithms {
         @Override
         public void sort(int[] a, int k) {
             // FIXME
+            LinkedList<Integer> ordered = new LinkedList();
+            LinkedList[] positions = new LinkedList[10];
+            for(int i = 0; i < positions.length; i++){
+                positions[i] = new LinkedList();
+            }
+            int largest = Integer.MIN_VALUE;
+            for(int i=0; i < k; i++){
+                if(a[i]>largest){
+                    largest = a[i];
+                }
+            }
+            for(int i = 0; i < k; i ++){
+                ordered.add(a[i]);
+            }
+            int maxDigits = Integer.toString(largest).length();
+            int mod = 10;
+            for(int i = 0; i < maxDigits; i ++){
+                for(int j = 0; j < k; j ++){
+                    positions[(ordered.get(j)%mod)/(mod/10)].add(j);
+                }
+
+                int[] copy = new int[ordered.size()];
+                for(int m = 0; m < ordered.size(); m++){
+                    copy[m] = ordered.get(m);
+                }
+                ordered.clear();
+
+                for(int s = 0; s < 10; s++){
+                    for(int b = 0; b < positions[s].size(); b++){
+                        ordered.add(copy[(Integer) positions[s].get(b)]);
+                    }
+                }
+                for(int x = 0; x < positions.length; x++){
+                    positions[x] = new LinkedList();
+                }
+
+                mod*=10;
+            }
+            for(int i = 0; i < k; i++){
+                a[i] = ordered.get(i);
+            }
         }
 
         @Override
