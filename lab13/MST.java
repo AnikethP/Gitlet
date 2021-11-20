@@ -1,6 +1,4 @@
-import java.util.Arrays;
-import java.util.Comparator;
-
+import java.util.*;
 /** Minimal spanning tree utility.
  *  @author
  */
@@ -18,11 +16,39 @@ public class MST {
      *  original edges, just the original edges themselves.) */
     public static int[][] mst(int V, int[][] E) {
         E = Arrays.copyOf(E, E.length);
-        int numEdgesInResult = 0; // FIXME: how many edges should there be in our MST?
+        int numEdgesInResult = V-1; // FIXME: how many edges should there be in our MST?
         int[][] result = new int[numEdgesInResult][];
         // FIXME: what other data structures do I need?
+        UnionFind uf = new UnionFind(V);
+        ArrayList<int[]> edges = new ArrayList();
+        for (int[] x: E){
+            edges.add(x);
+        }
         // FIXME: do Kruskal's Algorithm
+        int i = 0;
+        while(i<numEdgesInResult){
+            int[] edge = Collections.min(edges, EDGE_WEIGHT_COMPARATOR);
+            edges.remove(edge);
+            int u = edge[0];
+            int v = edge[1];
+            if(!uf.samePartition(u, v)){
+                uf.union(u, v);
+                result[i] = edge;
+                i+=1;
+            }
+        }
         return result;
+    }
+
+    private static int[] findMin(int[][] x) {
+        int[] minimum = x[0];
+        for(int i = 0; i < x.length; i++){
+            if(EDGE_WEIGHT_COMPARATOR.compare(minimum, x[i]) > 0){
+                minimum = x[i];
+            }
+        }
+
+        return minimum;
     }
 
     /** An ordering of edges by weight. */
