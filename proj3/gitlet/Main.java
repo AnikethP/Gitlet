@@ -33,19 +33,20 @@ public class Main {
 
                 break;
             case "checkout":
-                if(args.length == 2){
-                    db.leaveBranch(args[1]);
-                }
+                System.out.println(args.length);
                 if(args.length == 3){
                     db.checkout(args[2]);
                 }
+                if(args.length == 4){
+                    db.branchCheckout(args[1], args[3]);
+                }
 
                 break;
-//            case "log":
-//                if(args.length == 1){
-//                    db.log();
-//                }
-//                break;
+            case "log":
+                if(args.length == 1){
+                    db.log();
+                }
+                break;
         }
     }
 

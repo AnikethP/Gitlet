@@ -34,4 +34,9 @@ public class Branches implements Serializable {
         writeObject(Database.branchFile, this);
     }
 
+    public void updateBranch(String name){
+        curr = name;
+        writeObject(Database.branchFile, this);
+    }
+
 }

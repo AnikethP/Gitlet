@@ -43,6 +43,7 @@ public class Stage implements Serializable, Dumpable {
     void emptyStage(){
         addStage = new HashMap<>();
         removeStage = new HashMap<>();
+        writeObject(stageFile, this);
     }
 
 }

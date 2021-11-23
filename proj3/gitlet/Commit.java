@@ -20,7 +20,6 @@ public class Commit implements Serializable {
     private String parentHash;
     private String myHash;
 
-
     public Commit() throws IOException {
         time = new Date(0);
         parentHash = "";
@@ -69,6 +68,18 @@ public class Commit implements Serializable {
 
     public String getMyHash(){
         return myHash;
+    }
+
+    public String getParentHash(){
+        return parentHash;
+    }
+
+    public Date getTime(){
+        return time;
+    }
+
+    public String getMessage(){
+        return message;
     }
 
 }
