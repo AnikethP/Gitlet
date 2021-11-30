@@ -65,30 +65,30 @@ public class Database {
         b.addToCurr(newCommit.getMyHash());
     }
 
-    void leaveBranch(String name){
-
-        Stage stage = readObject(stageFile, Stage.class);
-        Branches branch = readObject(branchFile, Branches.class);
-        if(!branch.branches.containsKey(name)){
-            System.out.print("No such branch exists.");
-        }
-        else{
-            String checkoutCommitName = branch.branches.get(name);
-            Commit prevCommit = readObject(new File(commitFolder + "/" + checkoutCommitName), Commit.class);
-            String headCommitName = branch.branches.get(branch.getCurr());
-            Commit headCommit = readObject(new File(commitFolder + "/" + headCommitName), Commit.class);
-
-            List<String> files = plainFilenamesIn(CWD);
-            branch.updateBranch(name);
-            headCommit = readObject(new File(commitFolder + "/" + branch.branches.get(name)), Commit.class);
-            for (String f : files) {
-                if (headCommit.getBlobs() == null) {
-                    restrictedDelete(f);
-                }
-            }
-        }
-        stage.emptyStage();
-    }
+//    void leaveBranch(String name){
+//
+//        Stage stage = readObject(stageFile, Stage.class);
+//        Branches branch = readObject(branchFile, Branches.class);
+//        if(!branch.branches.containsKey(name)){
+//            System.out.print("No such branch exists.");
+//        }
+//        else{
+//            String checkoutCommitName = branch.branches.get(name);
+//            Commit prevCommit = readObject(new File(commitFolder + "/" + checkoutCommitName), Commit.class);
+//            String headCommitName = branch.branches.get(branch.getCurr());
+//            Commit headCommit = readObject(new File(commitFolder + "/" + headCommitName), Commit.class);
+//
+//            List<String> files = plainFilenamesIn(CWD);
+//            branch.updateBranch(name);
+//            headCommit = readObject(new File(commitFolder + "/" + branch.branches.get(name)), Commit.class);
+//            for (String f : files) {
+//                if (headCommit.getBlobs() == null) {
+//                    restrictedDelete(f);
+//                }
+//            }
+//        }
+//        stage.emptyStage();
+//    }
 
     void log(){
         SimpleDateFormat formatter = new SimpleDateFormat ("E MMM dd hh:mm:ss yyyy -0800");
@@ -175,7 +175,7 @@ public class Database {
             System.out.println(key);
         }
         System.out.println("\n"+"=== Modifications Not Staged For Commit ===" + "\n");
-        System.out.println("=== Untracked Files ===" + "\n");
+        System.out.println("=== Untracked Files ===\n\n");
 
     }
 
@@ -205,8 +205,44 @@ public class Database {
         writeContents(join(CWD, name), info);
     }
 
-    void branchCheckout(String branchName){
-        
+    void branchCheckout(String name){
+        Branches b = Utils.readObject(branchFile, Branches.class);
+        if(b.branches.containsKey(name)){
+            if(b.getCurr().equals(name)){
+                System.out.println("No need to checkout the current branch.");
+                return;
+            }
+            Commit headCommit = readObject(join(commitFolder, b.getCurr()), Commit.class);
+
+            String branchCommitName = b.branches.get(name);
+            Commit branchCommit = readObject(join(commitFolder, branchCommitName), Commit.class);
+            if (headCommit.getBlobs() == null) {
+                if(plainFilenamesIn(CWD).size() > 0){
+                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                }
+            }
+            else{
+                for(String file : plainFilenamesIn(CWD)){
+                    if(branchCommit.getBlobs().containsKey(file)){
+                        if(!headCommit.getBlobs().containsKey(file)){
+                            System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
+                        }
+                    }
+                }
+            }
+        }
+        else{
+            System.out.print("No such branch exists.");
+            return;
+        }
+
+        b.updateBranch(name);
+        String branchCommitName = b.branches.get(name);
+        Commit branchCommit = readObject(join(commitFolder, branchCommitName), Commit.class);
+        for(String f : plainFilenamesIn(CWD)){
+                
+        }
+
     }
 
     void addBranch(){
