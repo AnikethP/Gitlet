@@ -38,7 +38,7 @@ public class Main {
                     db.checkout(args[2]);
                 }
                 if(args.length == 4){
-                    db.branchCheckout(args[1], args[3]);
+                    db.checkout(args[1], args[3]);
                 }
 
                 break;
@@ -47,6 +47,24 @@ public class Main {
                     db.log();
                 }
                 break;
+            case "global-log":
+                if(args.length == 1){
+                    db.globalLog();
+                }
+                break;
+            case "rm":
+                if(args.length == 2){
+                    db.rm(args[1]);
+                }
+                break;
+            case "status":
+                if(args.length == 1){
+                    db.status();
+                }
+            case "find":
+                if(args.length == 2){
+                    db.find(args[1]);
+                }
         }
     }
 

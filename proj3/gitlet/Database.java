@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import static gitlet.Utils.*;
@@ -97,9 +98,7 @@ public class Database {
         Commit commit = readObject(new File(commitFolder + "/" + headCommitName), Commit.class);
         System.out.println("commit " +  branch.getCurr());
         System.out.println("Date: " + formatter.format(commit.getTime()));
-        System.out.println(commit.getMessage());
-        //Need new line
-        System.out.println("");
+        System.out.println(commit.getMessage() + "\n");
         while(commit.getParentHash().length() != 0){
             System.out.println("===");
             System.out.println("commit " + commit.getParentHash());
@@ -109,6 +108,39 @@ public class Database {
             System.out.println("");
         }
 
+    }
+
+    void globalLog(){
+        SimpleDateFormat formatter = new SimpleDateFormat ("E MMM dd hh:mm:ss yyyy -0800");
+        for(String s : plainFilenamesIn(commitFolder)){
+            Commit commit = Utils.readObject(Utils.join(commitFolder, s), Commit.class);
+            System.out.println("===");
+            System.out.println("commit " + s);
+            System.out.println("Date: " + formatter.format(commit.getTime()));
+            System.out.println(commit.getMessage() + "\n");
+        }
+    }
+
+    void rm(String removeFile) {
+        Stage s = Utils.readObject(stageFile, Stage.class);
+        Branches b = Utils.readObject(branchFile, Branches.class);
+        Commit headCommit = readObject(join(commitFolder, b.getCurr()), Commit.class);
+        if(s.getAddStage().containsKey(removeFile)){
+            s.getAddStage().remove(removeFile);
+            writeObject(stageFile, s);
+        }
+        else if(!s.getAddStage().containsKey(removeFile) && !headCommit.getBlobs().containsKey(removeFile)){
+            System.out.print("No reason to remove the file.");
+        }
+
+        else if(headCommit.getBlobs() == null){
+            System.out.print("No reason to remove the file.");
+        }
+        else{
+            s.getRemoveStage().put(removeFile, null);
+            restrictedDelete(join(CWD, removeFile));
+            writeObject(stageFile, s);
+        }
     }
     void checkout(String s) throws IOException{
         Branches b = Utils.readObject(Database.branchFile, Branches.class);
@@ -121,8 +153,44 @@ public class Database {
         }
         Utils.writeContents(join(CWD, s), Utils.readContentsAsString(blobFile));
     }
+    void status() {
+        System.out.println("===Branches===");
+        Branches b = Utils.readObject(branchFile, Branches.class);
+        for(String key : b.branches.keySet()){
+            if(b.getCurr().equals(key)){
+                System.out.println("*" + key);
+            }
+            else{
+                System.out.println(key);
+            }
+        }
+        Stage stage = Utils.readObject(stageFile, Stage.class);
+        System.out.println("\n" + "===Staged Files===");
+        for(String key : stage.getAddStage().keySet()){
+            System.out.println(key);
+        }
+        System.out.println("");
+        System.out.println("\n" + "===Removed Files===");
+        for(String key : stage.getRemoveStage().keySet()){
+            System.out.println(key);
+        }
+        System.out.println("\n"+"=== Modifications Not Staged For Commit ===" + "\n");
+        System.out.println("=== Untracked Files ===" + "\n");
 
-    void branchCheckout(String commit, String name) throws IOException{
+    }
+
+    void find(String msg){
+        for(String c : plainFilenamesIn(commitFolder)){
+            if(readObject(join(commitFolder, c), Commit.class).getMessage().equals(msg)){
+                System.out.println(readObject(join(commitFolder, c), Commit.class).getMyHash());
+                return;
+            }
+        }
+
+        System.out.print("Found no commit with that message.");
+
+    }
+    void checkout(String commit, String name) throws IOException{
         List<String> filesInCWD = plainFilenamesIn(CWD);
         Commit com = null;
         for(String c : plainFilenamesIn(commitFolder)){
@@ -135,6 +203,27 @@ public class Database {
             join(CWD, name).createNewFile();
         }
         writeContents(join(CWD, name), info);
+    }
+
+    void branchCheckout(String branchName){
+        
+    }
+
+    void addBranch(){
+
+    }
+
+    void rmBranch(){
+
+    }
+
+    void reset(String id){
+        Branches branch = readObject(branchFile, Branches.class);
+
+    }
+
+    void merge(){
+
     }
     public static final File CWD = new File(System.getProperty("user.dir"));
     public static final File gitletFolder = join(CWD, ".gitlet");
