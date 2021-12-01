@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static gitlet.Utils.*;
 
@@ -37,22 +38,39 @@ public class Database {
         stage = new Stage();
         Branches b = new Branches("master");
         b.addToCurr(commit.getMyHash());
+        b.updateBranch("master");
 
 
     }
 
     void add(String s) {
-        File file = join(CWD, s);
-        if(!new File(s).exists()){
-            System.out.println("File does not exist.");
-            System.exit(0);
-        }
 
+        Branches branch = Utils.readObject(branchFile, Branches.class);
+        String headCommitName = branch.getCurr();
+        Commit commit = readObject(new File(commitFolder + "/" + headCommitName), Commit.class);
+        File file = join(CWD, s);
+        if(!file.exists()){
+            System.out.println("File does not exist.");
+            return;
+        }
         String hash = sha1(Utils.serialize(readContentsAsString(file)));
         File blob = join(blobFolder, hash);
-        String info = readContentsAsString(file);
-        writeContents(blob, info);
         Stage stage = Utils.readObject(stageFile, Stage.class);
+        String info = readContentsAsString(file);
+
+        if(stage.getRemoveStage().containsKey(s)){
+            stage.getRemoveStage().remove(s);
+            writeObject(stageFile, stage);
+            return;
+        }
+        else if(commit.getBlobs()!=null) {
+            if (commit.getBlobs().containsKey(s) && commit.getBlobs().get(s).equals(hash)) {
+                return;
+            }
+        }
+
+
+        writeContents(blob, info);
         stage.addToStage(s, hash);
         writeObject(stageFile, stage);
 
@@ -64,31 +82,6 @@ public class Database {
         Utils.readObject(stageFile, Stage.class).emptyStage();
         b.addToCurr(newCommit.getMyHash());
     }
-
-//    void leaveBranch(String name){
-//
-//        Stage stage = readObject(stageFile, Stage.class);
-//        Branches branch = readObject(branchFile, Branches.class);
-//        if(!branch.branches.containsKey(name)){
-//            System.out.print("No such branch exists.");
-//        }
-//        else{
-//            String checkoutCommitName = branch.branches.get(name);
-//            Commit prevCommit = readObject(new File(commitFolder + "/" + checkoutCommitName), Commit.class);
-//            String headCommitName = branch.branches.get(branch.getCurr());
-//            Commit headCommit = readObject(new File(commitFolder + "/" + headCommitName), Commit.class);
-//
-//            List<String> files = plainFilenamesIn(CWD);
-//            branch.updateBranch(name);
-//            headCommit = readObject(new File(commitFolder + "/" + branch.branches.get(name)), Commit.class);
-//            for (String f : files) {
-//                if (headCommit.getBlobs() == null) {
-//                    restrictedDelete(f);
-//                }
-//            }
-//        }
-//        stage.emptyStage();
-//    }
 
     void log(){
         SimpleDateFormat formatter = new SimpleDateFormat ("E MMM dd hh:mm:ss yyyy -0800");
@@ -129,7 +122,7 @@ public class Database {
             s.getAddStage().remove(removeFile);
             writeObject(stageFile, s);
         }
-        else if(!s.getAddStage().containsKey(removeFile) && !headCommit.getBlobs().containsKey(removeFile)){
+        else if(headCommit.getBlobs() != null && !s.getAddStage().containsKey(removeFile) && !headCommit.getBlobs().containsKey(removeFile)){
             System.out.print("No reason to remove the file.");
         }
 
@@ -154,10 +147,10 @@ public class Database {
         Utils.writeContents(join(CWD, s), Utils.readContentsAsString(blobFile));
     }
     void status() {
-        System.out.println("===Branches===");
+        System.out.println("=== Branches ===");
         Branches b = Utils.readObject(branchFile, Branches.class);
         for(String key : b.branches.keySet()){
-            if(b.getCurr().equals(key)){
+            if(b.getCurr().equals(b.branches.get(key))) {
                 System.out.println("*" + key);
             }
             else{
@@ -165,29 +158,31 @@ public class Database {
             }
         }
         Stage stage = Utils.readObject(stageFile, Stage.class);
-        System.out.println("\n" + "===Staged Files===");
+        System.out.println("\n" + "=== Staged Files ===");
         for(String key : stage.getAddStage().keySet()){
             System.out.println(key);
         }
-        System.out.println("");
-        System.out.println("\n" + "===Removed Files===");
+        System.out.println("\n" + "=== Removed Files ===");
         for(String key : stage.getRemoveStage().keySet()){
             System.out.println(key);
         }
         System.out.println("\n"+"=== Modifications Not Staged For Commit ===" + "\n");
-        System.out.println("=== Untracked Files ===\n\n");
-
+        System.out.println("=== Untracked Files ===");
+        System.out.println();
     }
 
     void find(String msg){
+        boolean found = false;
         for(String c : plainFilenamesIn(commitFolder)){
             if(readObject(join(commitFolder, c), Commit.class).getMessage().equals(msg)){
                 System.out.println(readObject(join(commitFolder, c), Commit.class).getMyHash());
-                return;
+                found = true;
             }
         }
+        if(!found){
+            System.out.print("Found no commit with that message.");
+        }
 
-        System.out.print("Found no commit with that message.");
 
     }
     void checkout(String commit, String name) throws IOException{
@@ -198,6 +193,14 @@ public class Database {
                 com = readObject(join(commitFolder, commit), Commit.class);
             }
         }
+        if(com == null){
+            System.out.println("No commit with that id exists.");
+            return;
+        }
+        else if(!com.getBlobs().containsKey(name)){
+            System.out.println("File does not exist in that commit.");
+            return;
+        }
         String info = readContentsAsString(join (blobFolder, com.getBlobs().get(name)));
         if(!filesInCWD.contains(name)){
             join(CWD, name).createNewFile();
@@ -205,10 +208,11 @@ public class Database {
         writeContents(join(CWD, name), info);
     }
 
-    void branchCheckout(String name){
+    void branchCheckout(String name) throws IOException{
+
         Branches b = Utils.readObject(branchFile, Branches.class);
         if(b.branches.containsKey(name)){
-            if(b.getCurr().equals(name)){
+            if(b.curr.equals(name)){
                 System.out.println("No need to checkout the current branch.");
                 return;
             }
@@ -216,6 +220,7 @@ public class Database {
 
             String branchCommitName = b.branches.get(name);
             Commit branchCommit = readObject(join(commitFolder, branchCommitName), Commit.class);
+
             if (headCommit.getBlobs() == null) {
                 if(plainFilenamesIn(CWD).size() > 0){
                     System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
@@ -223,7 +228,7 @@ public class Database {
             }
             else{
                 for(String file : plainFilenamesIn(CWD)){
-                    if(branchCommit.getBlobs().containsKey(file)){
+                    if(branchCommit.getBlobs()!= null && branchCommit.getBlobs().containsKey(file)){
                         if(!headCommit.getBlobs().containsKey(file)){
                             System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
                         }
@@ -239,26 +244,160 @@ public class Database {
         b.updateBranch(name);
         String branchCommitName = b.branches.get(name);
         Commit branchCommit = readObject(join(commitFolder, branchCommitName), Commit.class);
+
         for(String f : plainFilenamesIn(CWD)){
-                
+            if(branchCommit.getBlobs() != null && branchCommit.getBlobs().containsKey(f)) {
+                Utils.writeContents(join(CWD, f), readContentsAsString(join(blobFolder, branchCommit.getBlobs().get(f))));
+
+            }
+            else{
+                restrictedDelete(f);
+            }
+        }
+        if(branchCommit.getBlobs() != null){
+            for(Map.Entry<String, String> pair : branchCommit.getBlobs().entrySet()){
+                File filePath = join(CWD, pair.getKey());
+                if(!filePath.exists()){
+                    join(CWD, pair.getKey()).createNewFile();
+                    writeContents(join(CWD, pair.getKey()), readContentsAsString(join(blobFolder, pair.getValue())));
+                }
+            }
+        }
+        Stage s = Utils.readObject(stageFile, Stage.class);
+        s.emptyStage();
+    }
+
+    void addBranch(String branchName){
+        boolean needed = true;
+        if(Utils.readObject(branchFile, Branches.class).branches.size() == 0){
+            needed = false;
         }
 
+
+        if(!needed || Utils.readObject(branchFile, Branches.class).branches.containsKey(branchName)){
+            System.out.print("A branch with that name already exists.");
+            return;
+        }
+
+        Branches b = readObject(branchFile, Branches.class);
+        b.addBranch("Fork", b.getCurr());
+        b.addBranch(branchName, b.getCurr());
+
     }
 
-    void addBranch(){
-
-    }
-
-    void rmBranch(){
+    void rmBranch(String branchName){
+        if(readObject(branchFile, Branches.class).curr.equals(branchName)){
+            System.out.println("Cannot remove the current branch.");
+            return;
+        }
+        if(!readObject(branchFile, Branches.class).branches.containsKey(branchName)){
+            System.out.println("A branch with that name does not exist.");
+            return;
+        }
+        readObject(branchFile, Branches.class).removeBranch(branchName);
 
     }
 
     void reset(String id){
+        boolean found = false;
+
+        for(String k : plainFilenamesIn(commitFolder)){
+            if(k.equals(id)){
+                found = true;
+                break;
+            }
+        }
+        if(!found){
+            System.out.println("No commit with that id exists.");
+        }
+
         Branches branch = readObject(branchFile, Branches.class);
+        branch.addBranch("xyz", id);
+        try {
+            branchCheckout("xyz");
+            branch.removeBranch("xyz");
+            branch.addToCurr(id);
+        }
+        catch (IOException e){
+            return;
+        }
+    }
+    void mergeHelper(String x, File f, Commit c) throws IOException{
+        String info = Utils.readContentsAsString(f);
+        File blob = join(blobFolder, sha1(serialize(info)));
+        Stage stage = Utils.readObject(stageFile, Stage.class);
+        if (stage.getAddStage().containsKey(x)) {
+            stage.getAddStage().remove(x);
+            writeObject(stageFile, stage);
+
+        } else if (c.getBlobs() != null) {
+            if(c.getBlobs().containsKey(x) && c.getBlobs().get(x).equals(sha1(serialize(info)))){
+                return;
+            }
+        } else if (!stage.getAddStage().containsKey(x) && !(stage.getAddStage().get(x) == sha1(serialize(info)))) {
+            blob.createNewFile();
+            Utils.writeContents(blob,info);
+            stage.getAddStage().put(x, sha1(serialize(info)));
+            writeObject(stageFile, stage);
+
+        }
 
     }
+    void mergeHelper2(String x, Commit c){
+        Stage stage = Utils.readObject(stageFile, Stage.class);
+        if (stage.getAddStage().containsKey(x)) {
+            stage.getAddStage().remove(x);
+            writeObject(stageFile, stage);
+        }
+        else if ((c.getBlobs() == null) || (!stage.getAddStage().containsKey(x) && !c.getBlobs().containsKey(x))) {
+            System.out.print("No reason to remove the file.");
+            System.exit(0);
+        }
+        else if (c.getBlobs().containsKey(x)) {
+            stage.getRemoveStage().put(x, null);
+            writeObject(stageFile, stage);
 
-    void merge(){
+        }
+    }
+    void merge(String name) throws IOException{
+        Branches b = readObject(branchFile, Branches.class);
+
+        if(b.curr.equals(name)){
+            System.out.println("Cannot merge a branch with itself.");
+            return;
+        }
+        if(!b.branches.containsKey(name)){
+            System.out.print("A branch with that name does not exist.");
+            return;
+        }
+        Stage s = readObject(stageFile, Stage.class);
+        if(s.removeStage.size() != 0){
+            System.out.println("You have uncommitted changes.");
+            return;
+        }
+        else if(s.addStage.size() != 0){
+            System.out.println("You have uncommitted changes.");
+            return;
+        }
+        boolean flag = false;
+        List<String> fileList = plainFilenamesIn(CWD);
+        Commit branchHEAD = readObject(join(commitFolder, b.getCurr()), Commit.class);
+        String checkedOutCommitName = b.branches.get(name);
+        Commit checkedOutCommit = readObject(join(commitFolder, checkedOutCommitName),Commit.class);
+        if (branchHEAD.getBlobs() != null) {
+            for (String file : fileList) {
+                if (!branchHEAD.getBlobs().containsKey(file) && checkedOutCommit.getBlobs().containsKey(file)) {
+                    System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
+                    return;
+                }
+            }
+        }
+        else {
+            if (fileList.size() > 0) {
+                System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
+                return;
+            }
+        }
 
     }
     public static final File CWD = new File(System.getProperty("user.dir"));

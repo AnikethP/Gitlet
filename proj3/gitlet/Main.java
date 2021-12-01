@@ -28,16 +28,26 @@ public class Main {
                 break;
             case "commit":
                 if(args.length == 2){
-                    db.commit(args[1]);
+                    if(args[1].length() == 0){
+                        System.out.println("Please enter a commit message.");
+                    }
+                    else{
+                        db.commit(args[1]);
+                    }
                 }
 
                 break;
             case "checkout":
-                System.out.println(args.length);
+                if (args.length==2){
+                    db.branchCheckout(args[1]);
+                }
                 if(args.length == 3){
                     db.checkout(args[2]);
                 }
                 if(args.length == 4){
+                    if(!args[2].equals("--")){
+                        System.out.println("Incorrect operands.");
+                    }
                     db.checkout(args[1], args[3]);
                 }
 
@@ -61,10 +71,30 @@ public class Main {
                 if(args.length == 1){
                     db.status();
                 }
+                break;
             case "find":
                 if(args.length == 2){
                     db.find(args[1]);
                 }
+                break;
+            case "branch":
+                if(args.length == 2){
+                    db.addBranch(args[1]);
+                }
+                break;
+            case "rm-branch":
+                if(args.length == 2){
+                    db.rmBranch(args[1]);
+                }
+            case "merge":
+                if(args.length==2){
+                    db.merge(args[1]);
+                }
+            case "reset":
+                if(args.length==2){
+                    db.reset(args[1]);
+                }
+
         }
     }
 

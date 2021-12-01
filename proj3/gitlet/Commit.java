@@ -40,7 +40,7 @@ public class Commit implements Serializable {
         time = new Date();
         myHash = sha1(Utils.serialize(this));
 
-        if(stagingArea.getAddStage().isEmpty()) {
+        if(stagingArea.getAddStage().isEmpty() && stagingArea.getRemoveStage().isEmpty()) {
             System.out.println("No changes added to the commit.");
             System.exit(0);
         }
