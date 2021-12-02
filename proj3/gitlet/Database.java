@@ -223,23 +223,8 @@ public class Database {
     void status() {
         System.out.println("=== Branches ===");
         Branches b = Utils.readObject(BRANCHFILE, Branches.class);
-        for (String key : b.branches().keySet()) {
-            if (!key.equals("Fork")
-                    && b.getCurr().equals(b.branches().get(key))) {
-                System.out.println("*" + key);
-            } else if (!key.equals("Fork")) {
-                System.out.println(key);
-            }
-        }
         Stage s = Utils.readObject(STAGEFILE, Stage.class);
-        System.out.println("\n" + "=== Staged Files ===");
-        for (String key : s.getAddStage().keySet()) {
-            System.out.println(key);
-        }
-        System.out.println("\n" + "=== Removed Files ===");
-        for (String key : s.getRemoveStage().keySet()) {
-            System.out.println(key);
-        }
+        statusHelper();
         String c = "=== Modifications Not Staged For Commit ===";
         System.out.println("\n" + c);
         File joined = join(COMMITFOLDER, b.getCurr());
@@ -249,7 +234,7 @@ public class Database {
         for (String f : plainFilenamesIn(CWD)) {
             String info = readContentsAsString(join(CWD, f));
             if (headCommit.getBlobs() != null && blobs.containsKey(f)
-                    && blobs.get(f) != sha1(serialize(info))
+                    && !blobs.get(f).equals(sha1(serialize(info)))
                     && b.branches().size() == 1) {
                 modified.put(f, "(modified)");
             }
@@ -257,7 +242,8 @@ public class Database {
         if (blobs != null) {
             for (Map.Entry<String, String> entry : blobs.entrySet()) {
                 if (!plainFilenamesIn(CWD).contains(entry.getKey())
-                        && b.branches().size() == 1) {
+                        && b.branches().size() == 1
+                        && !s.getRemoveStage().containsKey(entry.getKey())) {
                     modified.put(entry.getKey(), "(deleted)");
                 }
             }
@@ -269,7 +255,7 @@ public class Database {
         System.out.println("=== Untracked Files ===");
         List<String> untracked = new ArrayList<>();
         if (headCommit.getBlobs() == null) {
-            untracked = plainFilenamesIn(CWD);
+            untracked.addAll(plainFilenamesIn(CWD));
         } else {
             for (String f : plainFilenamesIn(CWD)) {
                 if (!blobs.containsKey(f) && b.branches().size() == 1) {
@@ -277,8 +263,44 @@ public class Database {
                 }
             }
         }
+        for (String k : s.getAddStage().keySet()) {
+            if (untracked.contains(k)) {
+                untracked.remove(k);
+            }
+        }
+        for (String k : s.getRemoveStage().keySet()) {
+            if (untracked.contains(k)) {
+                untracked.remove(k);
+            }
+        }
+        untracked = ((plainFilenamesIn(CWD).size() == 0)
+                ? new ArrayList<>() : untracked);
         untracked.forEach(System.out::println);
         System.out.println();
+    }
+    /**
+     * Helps displays status.
+     *
+     */
+    void statusHelper() {
+        Branches b = Utils.readObject(BRANCHFILE, Branches.class);
+        Stage s = Utils.readObject(STAGEFILE, Stage.class);
+        for (String key : b.branches().keySet()) {
+            if (!key.equals("Fork")
+                    && b.getCurr().equals(b.branches().get(key))) {
+                System.out.println("*" + key);
+            } else if (!key.equals("Fork")) {
+                System.out.println(key);
+            }
+        }
+        System.out.println("\n" + "=== Staged Files ===");
+        for (String key : s.getAddStage().keySet()) {
+            System.out.println(key);
+        }
+        System.out.println("\n" + "=== Removed Files ===");
+        for (String key : s.getRemoveStage().keySet()) {
+            System.out.println(key);
+        }
     }
     /**
      * finds commit with msg.

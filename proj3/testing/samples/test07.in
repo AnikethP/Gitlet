@@ -1,0 +1,22 @@
+# Basic initialization
+> init
+<<<
+E .gitlet
+> ooga booga
+No command with that name exists.
+<<<
+> monkey ape
+No command with that name exists.
+<<<
++ f.txt wug.txt
+> add f.txt
+<<<
+> monkey ape
+No command with that name exists.
+<<<
+> monkey ape
+No command with that name exists.
+<<<
+> monkey ape
+No command with that name exists.
+<<<

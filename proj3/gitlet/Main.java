@@ -1,6 +1,9 @@
 package gitlet;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Driver class for Gitlet, the tiny stupid version-control system.
@@ -21,7 +24,8 @@ public class Main {
      */
     public static void main(String... args) throws IOException {
         if (args.length == 0) {
-            exitWithError("Must have at least one argument");
+            System.out.println(("Please enter a command."));
+            return;
         }
         switch (args[0]) {
         case "init":
@@ -56,9 +60,7 @@ public class Main {
             doFind(args);
             break;
         case "branch":
-            if (args.length == 2) {
-                db.addBranch(args[1]);
-            }
+            doBranch(args);
             break;
         case "rm-branch":
             if (args.length == 2) {
@@ -76,6 +78,7 @@ public class Main {
             }
             break;
         default:
+            System.out.println("No command with that name exists");
             break;
         }
     }
@@ -94,6 +97,7 @@ public class Main {
         if (args.length == 4) {
             if (!args[2].equals("--")) {
                 System.out.println("Incorrect operands.");
+                return;
             }
             db.checkout(args[1], args[3]);
         }
@@ -148,6 +152,12 @@ public class Main {
      * @param args user input.
      */
     static void doStatus(String... args) throws IOException {
+        Path path = Paths.get(".gitlet");
+        if (!Files.exists(path)) {
+            String l = "Not in an initialized Gitlet directory.";
+            System.out.println(l);
+            return;
+        }
         if (args.length == 1) {
             db.status();
         }
@@ -160,6 +170,16 @@ public class Main {
     static void doFind(String... args) throws IOException {
         if (args.length == 2) {
             db.find(args[1]);
+        }
+    }
+    /**
+     *
+     * Validates args and runs branch.
+     * @param args user input.
+     */
+    static void doBranch(String... args) throws IOException {
+        if (args.length == 2) {
+            db.addBranch(args[1]);
         }
     }
 
