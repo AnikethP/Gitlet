@@ -1,36 +1,51 @@
-# Create two branches and merge other into master.
-I setup2.inc
-> branch other
-<<<
-+ h.txt wug2.txt
-> add h.txt
-<<<
-> rm g.txt
-<<<
-> commit "Add h.txt and remove g.txt"
-<<<
-> checkout other
-<<<
-> rm f.txt
-<<<
-+ k.txt wug3.txt
-> add k.txt
-<<<
-> commit "Add k.txt and remove f.txt"
-<<<
-> checkout master
-<<<
-> merge other
-<<<
-* f.txt
-* g.txt
-= h.txt wug2.txt
-= k.txt wug3.txt
-> log
-===
-${COMMIT_HEAD}
-Merged other into master\.
+# Extra-credit status lines.
+I prelude1.inc
++ f.txt wug.txt
+> status
+=== Branches ===
+*master
 
-${ARBLINES}
-<<<*
-I blank-status2.inc
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+f.txt
+
+<<<
+> add f.txt
+<<<
+> commit "Add f"
+<<<
++ f.txt notwug.txt
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+f.txt (modified)
+
+=== Untracked Files ===
+
+<<<
+- f.txt
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+f.txt (deleted)
+
+=== Untracked Files ===
+
+<<<
