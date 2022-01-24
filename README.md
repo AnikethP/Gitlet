@@ -1,7 +1,7 @@
 # Gitlet
 Version-control system mimicing local features of git.
 
-##The main functionality that Gitlet supports is:
+## The main functionality that Gitlet supports is:
 
 - Saving the contents of entire directories of files. In Gitlet, this is called committing, and the saved contents themselves are called commits.
 - Restoring a version of one or more files or entire commits. In Gitlet, this is called checking out those files or that commit.
@@ -9,7 +9,7 @@ Version-control system mimicing local features of git.
 - Maintaining related sequences of commits, called branches.
 - Merging changes made in one branch into another.
 
-##Detailed Spec
+## Detailed Spec
 
 ![image](https://user-images.githubusercontent.com/66244944/150853707-dffa2b63-6983-416e-8f81-009b5e164b06.png)
 ![image](https://user-images.githubusercontent.com/66244944/150853732-5ac9528e-85c1-4fdc-ad29-611707f55396.png)
