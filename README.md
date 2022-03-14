@@ -11,6 +11,8 @@ Version-control system mimicing local features of git.
 
 ## Detailed Spec
 
+**Design Doc can be found in gitlet-design.md**
+
 ![image](https://user-images.githubusercontent.com/66244944/150853707-dffa2b63-6983-416e-8f81-009b5e164b06.png)
 ![image](https://user-images.githubusercontent.com/66244944/150853732-5ac9528e-85c1-4fdc-ad29-611707f55396.png)
 ![image](https://user-images.githubusercontent.com/66244944/150853775-23fd1508-f584-4fba-9287-b24df0d86318.png)
